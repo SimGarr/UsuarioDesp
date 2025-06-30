@@ -1,0 +1,74 @@
+package com.proyecto1.principal.service;
+
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import com.github.javafaker.Faker;
+import com.proyecto1.principal.model.Usuario;
+import com.proyecto1.principal.repository.UsuarioRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+class UsuarioServiceTest {
+
+    @Mock
+    private UsuarioRepository usuarioRepository;
+
+    @InjectMocks
+    private UsuarioService usuarioService;
+
+    private Faker faker;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        faker = new Faker();
+    }
+
+    @Test
+    void testCrearUsuario() {
+        Usuario usuario = new Usuario();
+        usuario.setCorreo(faker.internet().emailAddress());
+        usuario.setNombre(faker.name().fullName());
+        // Agrega más datos fake según tu modelo
+
+        when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuario);
+
+        String resultado = usuarioService.crearUsuario(usuario);
+
+        assertEquals("Usuario creado correctamente", resultado); // Ajusta según tu lógica real
+    }
+
+    @Test
+    void testEliminarUsuario() {
+        int idUsuario = faker.number().numberBetween(1, 1000);
+        Usuario usuarioFake = new Usuario();
+        usuarioFake.setIdUsuario(idUsuario);
+        usuarioFake.setCorreo(faker.internet().emailAddress());
+        usuarioFake.setNombre(faker.name().fullName());
+        // Agrega más datos fake según tu modelo
+
+        when(usuarioRepository.findByIdUsuario(idUsuario)).thenReturn(usuarioFake);
+        doNothing().when(usuarioRepository).delete(any());
+
+        boolean resultado = usuarioService.eliminarUsuario(idUsuario);
+
+        assertTrue(resultado);
+        verify(usuarioRepository, times(1)).delete(any());
+    }
+
+    @Test
+    void testEliminarUsuarioNoExiste() {
+        int idUsuario = faker.number().numberBetween(1001, 2000);
+
+        when(usuarioRepository.findByIdUsuario(idUsuario)).thenReturn(null);
+
+        boolean resultado = usuarioService.eliminarUsuario(idUsuario);
+
+        assertFalse(resultado);
+        verify(usuarioRepository, never()).delete(any());
+    }
+}
